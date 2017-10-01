@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" []>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<?rfc toc="yes"?>
+<?rfc tocdepth="2"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes" ?>
+<?rfc compact="yes" ?>
+<rfc category="std" docName="draft-ietf-babel-price-propagation-00"
+ipr="trust200902">
+<front>
+<title>Pay per forward extension for Babel</title>
+<author fullname="Justin Kilpatrick" initials="J." surname="Kilpatrick">
+<organization>Althea Mesh</organization>
+<address>
+<postal>
+<street></street>
+<city>Raleigh</city>
+<region></region>
+<code></code>
+<country>United States</country>
+</postal>
+<email>justin@altheamesh.com</email>
+</address>
+</author>
+
+<date day="01" month="October" year="2017"/>
+
+<abstract>
+<t>This document proposes an extension to the <xref target="BABEL"/>
+routing protocol to propagate prices and other billing information
+for the use of an external payment program.</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section title="TODOs">
+<t><list style="symbols">
+  <t>Pay per forward update TLV type: TBD</t>
+  <t>Currency sub-TLV type: TBD</t>
+</list></t>
+</section>
+
+<section title="Introduction">
+
+<t>Pay per forward is a payment strategy in which prices are advertised as
+monotonically increasing values much like the Babel metric. Each node adds some
+arbitrary price that it will charge to route packets along a particular route.</t>
+
+<t>When traffic is sent along that route payment follows with it. In the diagram
+below B and C and advertising prices of 5 and 2 respectively for forwarding 
+traffic to D. To send traffic to D, A would transfer 7 units of whatever
+currency is specified in the advertisements to B along with the traffic. B
+would then repeat this process with C, keeping all but 2 units of the original
+price for itself. D then receives the traffic.</t>
+
+<figure>
+<artwork><![CDATA[
+          5      2
+   A ---- B ---- C ---- D
+]]></artwork></figure>
+
+<t>By adopting this specification routers essentially run two parallel Babel
+networks, one set for free routes and advertisements and another for paid
+routes and advertisements. These two sets of routes can be completely
+different, have an overlap, or see free routes transformed into paid and vice
+versa by routers attempting to make money or subsidize specific connections.
+</t>
+
+</section>
+
+<section title="Protocol Operation">
+
+<t>Routers advertise a new TLV price-propagation-update in addition to the
+existing Babel update TLV. The price-propagation-update TLV must contain at least
+one currency sub-TLV.</t>
+
+</section>
+
+<section title="Currency agreement">
+
+<t>For each configured currency the router maintains a hop price that it wishes to
+charge. When a price-propagation-update TLV is received each currency sub-TLV is
+compared against the list of configured currencies for that router.</t>
+
+<t>For each currency sub-TLV that matches a configured currency the hop price is
+added to the currency sub-TLV advertisement price and the total value is stored
+in the routing table for later advertisement.</t>
+
+<t>Received currency sub-TLVs that are not in the routers supported currency list
+MUST be discarded silently.</t>
+
+<t>If there are no supported currency sub-TLVs in a pay-per-foward update TLV the
+update itself must be discarded.</t>
+
+</section>
+
+<section title="Route transformation">
+
+<t>Routers using this extension will continue to support normal Babel routes
+and are free to transform free routes into paid route advertisements and vice
+versa.</t>
+
+</section>
+
+<section title="Packet format">
+
+<t>This extension defines the price-propagation-update TLV, whose
+Type field has value [undecided]. The for the price-propagation
+update TLV is otherwise identical to the existing update TLV. 
+It is mandatory that a price-propagation TLV must contain at least 
+one currency sub-TLV of the following format.</t>
+</section>
+
+<section title="Pay per forward currency sub-TLV">
+<figure><artwork><![CDATA[
+0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Type = TBD |    Length     |          Currency code          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                       Price per byte                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+]]></artwork></figure>
+
+<t>Fields:
+<list style="hanging" hangIndent="10">
+<t hangText="Type">Set to TBD to indicate a Full path round trip time sub-TLV.</t>
+<t hangText="Length">The length of the body, exclusive of the Type and Length fields.
+                     A constant value of 6 bytes</t>
+<t hangText="Currency code">A code defined by a standardized billing protocol representing 
+                            both a currency and the unit denominated by the price per byte 
+                            field. The currency code may also specify details around how 
+                            payments must be delivered or handled.</t>
+<t hangText="Price per byte">An unsigned integer denoting a quantity of currency 
+                             defined by the currency code</t>
+</list>
+</t>
+
+</section>
+
+<section title="Security considerations">
+
+<t>There are no serious security concerns arising for Babel itself as a result
+of this extension. The payment implementation may be impacted by Babel.
+Problems of that nature may result in updates to this document. </t>
+
+</section>
+
+</middle>
+
+<back>
+
+<references title="Normative References">
+
+<reference anchor="BABEL"><front>
+<title>The Babel Routing Protocol</title>
+<author fullname="Juliusz Chroboczek" initials="J." surname="Chroboczek"/>
+<date month="May" year="2017"/>
+</front>
+<seriesInfo name="Internet Draft" value="draft-ietf-babel-rfc6126bis-02"/>
+</reference>
+</references>
+</back>
+
+</rfc>
+

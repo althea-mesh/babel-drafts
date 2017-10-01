@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" []>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<?rfc toc="yes"?>
+<?rfc tocdepth="2"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes" ?>
+<?rfc compact="yes" ?>
+<rfc category="std" docName="draft-ietf-babel-full-path-rtt-00"
+ipr="trust200902">
+<front>
+<title>Full path round trip time extension for Babel</title>
+<author fullname="Justin Kilpatrick" initials="J." surname="Kilpatrick">
+<organization>Althea Mesh</organization>
+<address>
+<postal>
+<street></street>
+<city>Raleigh</city>
+<region></region>
+<code></code>
+<country>United States</country>
+</postal>
+<email>justin@altheamesh.com</email>
+</address>
+</author>
+
+<date day="01" month="October" year="2017"/>
+
+<abstract>
+
+<t>This document proposes a <xref target="BABEL"/> extension that sums round
+trip time  estimation provided by the existing experimental Babel per
+neighbor <xref target="RTT"/> extension. To advertise the complete
+round trip time along a path. The total path round trip time metric can then be directly
+tested, validated, and used for routing decisions not subject to arbitrary
+metric variation or route poisoning attacks.</t>
+
+</abstract>
+
+</front>
+
+<middle>
+
+<section title="TODOs">
+<t><list style="symbols">
+  <t>Full path round trip time sub-TLV type: TBD</t>
+  <t>Compatible security methods list</t>
+</list></t>
+</section>
+
+<section title="Introduction">
+
+<t>The existing Babel metric field is elegant in that it takes into account many
+potential sources of willingness and route quality. While this is useful and
+compact in a network of trusted routers operated by close communities, the
+loose rules around metric computation for Babel make it impossible to
+objectively compare routes.</t>
+
+<t>The goal of this extension is to provide enough information to reduce or
+eliminate the effectiveness of routing table poisoning attacks by verifying
+objective information about the quality of the route using secured traffic
+between the route originator and the destination.</t> 
+
+<t>This document does not specify how this verification is to be carried out, the
+main concern is with propagating the information required.</t>
+
+</section>
+
+<section title="Protocol operation">
+
+<t>In the experimental Babel per neighbor <xref target="RTT"/> extension timestamps
+are attached as sub-TLV's to hello and IHU TLV's. A similar set of timestamps can
+be communicated over an entire route.</t>
+
+<t>The sum of the round trip time estimations per neighbor and the whole path
+round trip time should be the same. In reality there will always be some random
+variation. For stable and performant routes variation should average out over time</t>
+
+</section>
+
+<section title="Boostrapping">
+
+<t>For full path round trip time to be successfully and accurately computed the
+entire path from the originator of the route must be running both experimental extensions</t>
+
+<t>A router MAY at the time of creating an update TLV for a local route chose to
+attach a full path round trip time sub-TLV. For the first hop the value is initialized
+to zero.</t>
+
+</section>
+
+<section title="Updating the round trip time">
+
+<t>Since updates may be sent to a broadcast address it is the receiver of the
+update that computes the new round trip time sum to act on and store for later
+propagation. This is done by storing the round trip time per neighbor as specified
+in the  <xref target="RTT"/> extension and then adding the appropriate per neighbor
+value to the timedelta recived in the full path round trip time sub-TLV.</t>
+
+</section>
+
+<section title="Retraction">
+
+<t>If a update is to be sent out and a timestamp hello sub-TLV was not contained
+in the last successful hello/IHU cycle a full path round trip time sub-TLV must not be
+included in the update.</t>
+
+<t>If an update is received for a route that does not include the an updated
+path round trip time value the previously existing estimation MUST be removed 
+from the routing table and no longer advertised. This protects against
+stale values when the chain of round trip time estimation is somehow broken.</t>
+
+</section>
+
+<section title="Packet Format">
+
+<t>This extension defines a Full path round trip time sub-TLV that is
+contained within a update sub-TLV.</t>
+</section>
+
+<section title="Full path round trip time sub-TLV">
+<figure><artwork><![CDATA[
+0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Type = TBD |    Length     |        Transmit timedelta       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             ...             | 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+]]></artwork></figure>
+
+<t>Fields:
+<list style="hanging" hangIndent="10">
+<t hangText="Type">Set to [undecided] to indicate a full path round trip time sub-TLV</t>
+<t hangText="Length">The length of the body, exclusive of the Type and length fields. In this case a constant 4 bytes</t>
+<t hangText="Transmit timedelta">The total estimated microsectons required to send a packet along this route, stored as a 32 bit unsigned integer</t>
+</list>
+</t>
+
+</section>
+
+<section title="Security considerations">
+
+<t>This extension imposes no significant security concerns for Babel.</t>
+
+</section>
+
+</middle>
+
+<back>
+
+<references title="Normative References">
+
+<reference anchor="BABEL"><front>
+<title>The Babel Routing Protocol</title>
+<author fullname="Juliusz Chroboczek" initials="J." surname="Chroboczek"/>
+<date month="May" year="2017"/>
+</front>
+<seriesInfo name="Internet Draft" value="draft-ietf-babel-rfc6126bis-02"/>
+</reference>
+
+<reference anchor="RTT"><front>
+<title>Delay-based Metric Extension for the Babel Routing Protocol</title>
+<author fullname="Baptiste Jonglez" initials="B." surname="Jonglez"/>
+<author fullname="Juliusz Chroboczek" initials="J." surname="Chroboczek"/>
+<date month="March" year="2004"/>
+</front>
+<seriesInfo name="BCP" value="84"/>
+<seriesInfo name="RFC" value="3704"/>
+</reference>
+
+</references>
+
+
+</back>
+
+</rfc>
+
