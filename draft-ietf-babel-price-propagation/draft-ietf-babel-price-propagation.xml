@@ -108,9 +108,9 @@ versa.</t>
 <section title="Packet format">
 
 <t>This extension defines the price-propagation-update TLV, whose
-Type field has value [undecided]. The for the price-propagation
+Type field has value [undecided]. The format for the price-propagation
 update TLV is otherwise identical to the existing update TLV. 
-It is mandatory that a price-propagation TLV must contain at least 
+It is mandatory that a price-propagation TLV contains at least 
 one currency sub-TLV of the following format.</t>
 </section>
 
@@ -127,7 +127,7 @@ one currency sub-TLV of the following format.</t>
 
 <t>Fields:
 <list style="hanging" hangIndent="10">
-<t hangText="Type">Set to TBD to indicate a Full path round trip time sub-TLV.</t>
+<t hangText="Type">Set to TBD to indicate a currency sub-TLV.</t>
 <t hangText="Length">The length of the body, exclusive of the Type and Length fields.
                      A constant value of 6 bytes</t>
 <t hangText="Currency code">A code defined by a standardized billing protocol representing 
